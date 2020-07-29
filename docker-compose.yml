@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:5.7.30
+    restart: always
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ${twihaialert_db_name}
+      MYSQL_USER: ${twihaialert_db_user}
+      MYSQL_PASSWORD: ${twihaialert_db_password}
+      TZ: "Asia/Tokyo"
+
+volumes:
+  db-data:

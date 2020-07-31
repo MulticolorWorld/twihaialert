@@ -14,6 +14,10 @@ services:
       MYSQL_USER: ${twihaialert_db_user}
       MYSQL_PASSWORD: ${twihaialert_db_password}
       TZ: "Asia/Tokyo"
-
+  flyway:
+    image: flyway/flyway
+    command: -url=jdbc:mysql://db:3306 -schemas=${twihaialert_db_name} -user=${twihaialert_db_user} -password=${twihaialert_db_password} -connectRetries=60 migrate
+    volumes:
+      - ./flyway/sql:/flyway/sql
 volumes:
   db-data:

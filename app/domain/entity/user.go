@@ -3,12 +3,12 @@ package entity
 import "time"
 
 type User struct {
-	ID              int        `gorm:"primary_key"`
-	CreatedAt       *time.Time `gorm:"type:datetime;not null"`
-	LastLogin       *time.Time `gorm:"type:datetime;not null"`
-	LastNotify      *time.Time `gorm:"type:datetime"`
-	LastNotifyCount int        `gorm:"not null"`
-	DMNotification  int        `gorm:"Column:dm_notification;not null"`
+	ID              int
+	CreatedAt       *time.Time
+	LastLogin       *time.Time
+	LastNotify      *time.Time
+	LastNotifyCount int
+	DMNotification  int `gorm:"Column:dm_notification"`
 }
 
 func NewUser() *User {
@@ -22,4 +22,8 @@ func NewUser() *User {
 	u.LastNotifyCount = 0
 	u.DMNotification = 0
 	return u
+}
+
+func (u User) TableName() string {
+	return "user"
 }

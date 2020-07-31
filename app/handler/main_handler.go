@@ -1,58 +1,69 @@
 package handler
 
 import (
+	"app/domain/entity"
 	"app/useCase"
-	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
-	oauth1Twitter "github.com/dghubble/oauth1/twitter"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"os"
 )
-
-var config = oauth1.Config{
-	ConsumerKey:    os.Getenv("twihaialert_app_consumer_key"),
-	ConsumerSecret: os.Getenv("twihaialert_app_consumer_secret"),
-	CallbackURL:    "http://localhost:1323/login/callback",
-	Endpoint:       oauth1Twitter.AuthorizeEndpoint,
-}
 
 type MainHandler struct {
 	mu useCase.MainUseCase
+}
+
+type Data struct {
+	User     *entity.User
+	Accounts []entity.TwitterAccount
 }
 
 func NewMainHandler(mu useCase.MainUseCase) *MainHandler {
 	return &MainHandler{mu: mu}
 }
 
-func (wh MainHandler) Index(c echo.Context) error {
+func (mh MainHandler) Index(c echo.Context) error {
 	return c.Render(http.StatusOK, "index", nil)
 }
 
-func (wh MainHandler) Login(c echo.Context) error {
+func (mh MainHandler) Login(c echo.Context) error {
+	rt, rs, url, _ := mh.mu.PreLogin()
 
-	requestToken, requestSecret, _ := config.RequestToken()
+	sess, _ := session.Get("session", c)
+	sess.Values["requestToken"] = rt
+	sess.Values["requestSecret"] = rs
+	sess.Save(c.Request(), c.Response())
 
-	{
-		sess, _ := session.Get("session", c)
-		sess.Values["requestToken"] = requestToken
-		sess.Values["requestSecret"] = requestSecret
-		sess.Save(c.Request(), c.Response())
-	}
-
-	authorizationUrl, _ := config.AuthorizationURL(requestToken)
-	return c.Redirect(http.StatusFound, authorizationUrl.String())
+	return c.Redirect(http.StatusFound, url)
 }
 
-func (wh MainHandler) LoginCallback(c echo.Context) error {
+func (mh MainHandler) LoginCallback(c echo.Context) error {
 	sess, _ := session.Get("session", c)
-	requestSecret := sess.Values["requestSecret"].(string)
-	requestToken, verifier, _ := oauth1.ParseAuthorizationCallback(c.Request())
-	accessToken, accessSecret, _ := config.AccessToken(requestToken, requestSecret, verifier)
-	token := oauth1.NewToken(accessToken, accessSecret)
-	httpClient := config.Client(oauth1.NoContext, token)
-	client := twitter.NewClient(httpClient)
-	user, _, _ := client.Accounts.VerifyCredentials(&twitter.AccountVerifyParams{})
-	return c.String(http.StatusOK, user.ScreenName+":"+user.Name)
+	rs := sess.Values["requestSecret"].(string)
+	rt, v, err := oauth1.ParseAuthorizationCallback(c.Request())
+	if err != nil {
+		return err
+	}
+	id, err := mh.mu.Login(rt, rs, v)
+	if err != nil {
+		return err
+	}
+	sess.Values["userId"] = id
+	sess.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusFound, "/myPage")
+}
+
+func (mh MainHandler) MyPage(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userId := sess.Values["userId"].(int)
+	u, tas, err := mh.mu.FindUserInfo(userId)
+	if err != nil {
+		return err
+	}
+	data := Data{
+		User:     u,
+		Accounts: tas,
+	}
+	return c.Render(http.StatusOK, "myPage", data)
 }

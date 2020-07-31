@@ -1,0 +1,11 @@
+{{define "myPage"}}
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>ツイ廃あらーと</title>
+    </head>
+    <body>
+    <p><span>ログイン中のアカウント: </span><span>{{- /*gotype: app/handler.Data*/ -}}{{.User.ID}}</span></p>
+    </html>
+{{end}}

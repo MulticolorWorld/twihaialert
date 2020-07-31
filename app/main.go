@@ -16,18 +16,20 @@ import (
 )
 
 func main() {
-	err := persistence.InitDBConnection()
+	db, err := persistence.InitDBConnection()
 	if err != nil {
 		panic("DB接続エラー")
 	}
+	defer db.Close()
 
 	t := &Template{
-		templates: template.Must(template.ParseGlob("public/views/*.html")),
+		templates: template.Must(template.ParseGlob("public/views/*.gohtml")),
 	}
 
-	up := persistence.NewUserPersistence()
+	up := persistence.NewUserPersistence(db)
+	tap := persistence.NewTwitterAccountPersistence(db)
 	ts := serviceImpl.NewTwitterServiceImpl()
-	mu := useCase.NewMainUseCase(up, ts)
+	mu := useCase.NewMainUseCase(up, tap, ts)
 	mh := handler.NewMainHandler(*mu)
 
 	e := echo.New()
@@ -38,6 +40,7 @@ func main() {
 	e.GET("/", mh.Index)
 	e.POST("/login", mh.Login)
 	e.GET("/login/callback", mh.LoginCallback)
+	e.GET("/myPage", mh.MyPage)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

@@ -4,6 +4,7 @@ import (
 	"app/domain/entity"
 	"app/domain/repository"
 	"app/domain/service"
+	"strconv"
 	"time"
 )
 
@@ -84,4 +85,22 @@ func (mu MainUseCase) FindUserInfo(userId int) (*entity.User, []entity.TwitterAc
 		return nil, nil, err
 	}
 	return u, tas, nil
+}
+
+func (mu MainUseCase) UpdateConfig(d string, id int) error {
+	us, err := mu.ur.FindById(id)
+	if err != nil {
+		return err
+	}
+	u := &us[0]
+	dn, err := strconv.Atoi(d)
+	if err != nil {
+		return err
+	}
+	u.DMNotification = dn
+	_, err = mu.ur.Update(u)
+	if err != nil {
+		return err
+	}
+	return nil
 }

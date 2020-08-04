@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"html/template"
 	"io"
+	"net/http"
 )
 
 func main() {
@@ -20,6 +21,7 @@ func main() {
 	if err != nil {
 		panic("DB接続エラー")
 	}
+	db.LogMode(true)
 	defer db.Close()
 
 	t := &Template{
@@ -31,6 +33,7 @@ func main() {
 	ts := serviceImpl.NewTwitterServiceImpl()
 	mu := useCase.NewMainUseCase(up, tap, ts)
 	mh := handler.NewMainHandler(*mu)
+	eh := handler.NewErrorHandler()
 
 	e := echo.New()
 	e.Use(session.Middleware(sessions.NewCookieStore(securecookie.GenerateRandomKey(32))))
@@ -41,7 +44,16 @@ func main() {
 	e.GET("/", mh.Index)
 	e.GET("/login", mh.Login)
 	e.GET("/login/callback", mh.LoginCallback)
-	e.GET("/myPage", mh.MyPage)
+
+	l := e.Group("/l")
+	l.Use(loginCheckMiddleware)
+	l.GET("/myPage", mh.MyPage)
+	l.GET("/configInput", mh.ConfigInput)
+	l.POST("/config", mh.Config)
+	l.GET("/configFinish", mh.ConfigFinish)
+
+	er := e.Group("/error")
+	er.GET("/wrongToken", eh.WrongToken)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
@@ -52,4 +64,16 @@ type Template struct {
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func loginCheckMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		sess, _ := session.Get("session", c)
+		userId := sess.Values["userId"]
+		if userId == nil {
+			return c.Redirect(http.StatusFound, "/")
+		}
+		err := next(c)
+		return err
+	}
 }

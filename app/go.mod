@@ -6,6 +6,7 @@ require (
 	github.com/dghubble/go-twitter v0.0.0-20200725221434-4bc8ad7ad1b4
 	github.com/dghubble/gologin/v2 v2.2.0
 	github.com/dghubble/oauth1 v0.6.0
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.0
 	github.com/jinzhu/gorm v1.9.15

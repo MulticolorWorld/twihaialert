@@ -22,3 +22,12 @@ jobs:
           paths:
             - "/go/pkg"
           key: go-cache-v1
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master

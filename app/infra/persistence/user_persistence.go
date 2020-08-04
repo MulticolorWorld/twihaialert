@@ -4,6 +4,7 @@ import (
 	"app/domain/entity"
 	"app/domain/repository"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"os"
 )
 

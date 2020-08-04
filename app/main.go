@@ -35,10 +35,11 @@ func main() {
 	e := echo.New()
 	e.Use(session.Middleware(sessions.NewCookieStore(securecookie.GenerateRandomKey(32))))
 	e.Renderer = t
+	e.Static("/", "public/assets")
 	e.Logger.SetLevel(log.DEBUG)
 
 	e.GET("/", mh.Index)
-	e.POST("/login", mh.Login)
+	e.GET("/login", mh.Login)
 	e.GET("/login/callback", mh.LoginCallback)
 	e.GET("/myPage", mh.MyPage)
 

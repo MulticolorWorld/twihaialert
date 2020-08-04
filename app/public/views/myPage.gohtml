@@ -2,10 +2,83 @@
     <!DOCTYPE html>
     <html lang="ja">
     <head>
-        <meta charset="UTF-8"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script type="text/javascript" src="/bootstrap/js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.css" media="all"/>
+        <link rel="stylesheet" href="/css/common.css" media="all"/>
+        <link rel="shortcut icon" href="/favicon.ico"/>
         <title>ツイ廃あらーと</title>
     </head>
+
     <body>
-    <p><span>ログイン中のアカウント: </span><span>{{- /*gotype: app/handler.Data*/ -}}{{.User.ID}}</span></p>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <span class="navbar-brand"><img src="/img/logosmall_ja.png" alt="ツイ廃あらーと"/></span>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <a href="logout" class="btn btn-primary navbar-btn navbar-right hidden-xs"><span
+                        class="glyphicon glyphicon-log-out"></span>&nbsp;ログアウト</a>
+            <a href="logout" class="btn btn-primary navbar-btn navbar-right visible-xs"><span
+                        class="glyphicon glyphicon-log-out"></span></a>
+        </div><!-- /.container -->
+    </nav>
+    <section class="container">
+        <h2>アカウント情報</h2>
+        <p>現在あなたが登録しているアカウントは以下のとおりです。以下に表示されているアカウントのPost数を合算し、そのPost数で通知を行います。</p>
+        <ul class="list-group">
+            <li class="list-group-item" th:each="account : ${sessionBean.accounts}">@<span
+                        th:text="${account.screenName}">screenName</span></li>
+        </ul>
+        <h2>設定</h2>
+        <h3>アカウントの追加</h3>
+        <p>現在ログインしているアカウントに紐付けて通知するアカウントを追加できます。</p>
+        <ul>
+            <li>紐付けたアカウントの取消方法は今のところありません。アカウントを通知対象から削除したい場合はお手数ですが一度退会して再登録をお願いします。</li>
+            <li>通知の特性上、通知メッセージが140文字を超えないように注意してください。</li>
+        </ul>
+        <div class="text-right">
+            <div class="btn-group">
+                <a href="/addAccount" class="btn btn-info"><span class="glyphicon glyphicon-plus"></span>&nbsp;アカウントの追加</a>
+                <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#howto_addaccount">
+                    <strong>？</strong></button>
+            </div>
+        </div>
+        <ul id="howto_addaccount" class="list-group panel-collapse collapse">
+            <li class="list-group-item list-group-item-info">アカウントの追加方法</li>
+            <li class="list-group-item">1. 上の
+                <button class="btn btn-sm btn-info"><span class="glyphicon glyphicon-plus"></span>&nbsp;アカウントの追加</button>
+                をクリックします。
+            </li>
+            <li class="list-group-item">2. Twitterの認証画面のページが開きますので、右上のアカウントメニューをクリックしログアウトしてください。</li>
+            <li class="list-group-item">3. 追加したいアカウントのユーザ名とパスワードを入力し、「連携アプリを認証」をクリックすれば完了です。</li>
+        </ul>
+        <hr/>
+        <h3>通知方法</h3>
+        <p>通知方法を通常のPostによるものか、DMによるものかを設定できます。</p>
+        <div class="text-right">
+            <a href="/configInput" class="btn btn-info"><span class="glyphicon glyphicon-cog"></span>&nbsp;通知方法の変更</a>
+        </div>
+        <hr/>
+        <h3>退会・情報削除</h3>
+        <p>現在ログインしているアカウントをツイ廃あらーとと連携解除し、ツイ廃あらーとサーバから情報を全て削除します。紐付いているアカウントも全てツイ廃あらーとから連携が解除されますのでご注意ください。</p>
+        <div class="text-right">
+            <p><a href="/removeConfirm" class="btn btn-danger"><span
+                            class="glyphicon glyphicon-fire"></span>&nbsp;ツイ廃あらーとから退会する</a></p>
+        </div>
+    </section>
+    <footer>Manage:<a href="https://twitter.com/MulticolorWorld">@MulticolorWorld</a><br class="visible-xs"/><span
+                class="hidden-xs"> / </span>Design:<a href="https://twitter.com/Lemon_will">@Lemon_will</a></footer>
+    </body>
     </html>
 {{end}}

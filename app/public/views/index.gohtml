@@ -1,19 +1,139 @@
 {{define "index"}}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8"/>
-    <title>ツイ廃あらーと</title>
-</head>
-<body>
-<h2>ツイ廃あらーと</h2>
-<form action="/login" method="post">
-    <input type="submit" value="登録/ログイン"/>
-</form>
-<h4>これなに</h4>
-<p>登録すると0時に一日のTweet数を教えてくれるやつ</p>
-<p>現在改装工事中のため簡素化したものを表示してます。</p>
-<p>作者:<a href="https://mstdn.maud.io/@MulticolorWorld">multicolorworld@mstdn.maud.io</a></p>
-</body>
-</html>
+
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+        <meta name="description" content="1日のツイートをカウントし、100ツイート毎にお知らせ。さらに1日の終わりにその日のツイート数をお知らせするサービス。無料・無保証です。"/>
+        <meta name="keywords" content="Twitter,ツイ廃あらーと,ツイート数,Twitterサービス,ツイ廃"/>
+
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script type="text/javascript" src="bootstrap/js/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.css" media="all"/>
+        <link rel="stylesheet" href="css/common.css" media="all"/>
+        <link rel="stylesheet" href="css/toppage.css" media="all"/>
+        <link rel="shortcut icon" href="favicon.ico"/>
+        <title>ツイ廃あらーと</title>
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-47725050-1', 'twihaialert.net');
+            ga('send', 'pageview');
+        </script>
+    </head>
+    <body>
+    <div class="jumbotron">
+        <div class="banner_wrap">
+            <h1>
+                <img src="img/logo_ja.svg" alt="ツイ廃あらーと" class="top_banner"/>
+            </h1>
+        </div>
+        <a href="login" class="login_button hidden-xs"><img src="img/twitter-bird-16x16.png" class="twi_img" alt=""/>Twitterでログイン</a>
+    </div>
+    <div class="phone_login visible-xs">
+        <a href="login" class="login_button"><img src="img/twitter-bird-16x16.png" class="twi_img" alt=""/>&nbsp;Twitterでログイン</a>
+    </div>
+    <section class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h2>ツイ廃あらーととは</h2>
+                <p>ツイ廃あらーととは、ツイ廃化防止のために開発されたツイート数管理サービスです。アカウントを登録すると1日のツイート数をカウントし、以下のサービスを提供します。</p>
+                <div class="visible-xs">
+                    <ul>
+                        <li>1日の終わり(24時頃)にその日の総ポスト数をリプライあるいはDMにてお知らせします。</li>
+                        <li>100ポストごとにリプライやDMにてお知らせします。</li>
+                    </ul>
+                </div>
+                <div class="hidden-xs">
+                    <div class="row explain">
+                        <div class="col-lg-5 col-sm-6">
+                            <h3>1日のポスト数をあらーと!!</h3>
+                            <p>1日の終わり(24時頃)にその日の総ポスト数をリプライあるいはDMにてお知らせします。</p>
+                        </div>
+                        <img src="img/Today_post.png" alt="" class="hidden-xs img-responsive col-lg-7 col-sm-6"/>
+                    </div>
+                    <div class="row explain">
+                        <div class="col-lg-5 col-sm-6">
+                            <h3>100ポストごとにあらーと!!</h3>
+                            <p>100ポストごとにリプライやDMにてお知らせします。</p>
+                        </div>
+                        <img src="img/Hundred_post.png" alt="" class="hidden-xs img-responsive col-lg-7 col-sm-6"/>
+                    </div>
+                </div>
+                <h2>使い方</h2>
+                <p>上の「Twitterでログイン」よりサービスに登録したいアカウントの認証を行っていただくだけでサービスの利用を開始することが出来ます。</p>
+                <p>退会を行う場合も一度ログインをお願いします。設定項目より退会が可能です。</p>
+                <h2>免責事項</h2>
+                <ul>
+                    <li>当サービスは全て無保証です。当サービスを利用したことによる生じたいかなる損害、不利益等に関して当サービス管理者はいかなる責任も負いません。</li>
+                    <li>突然新機能がつくかもしれませんしつかないかもしれません。<br/>その時はここからログインし直すと設定が変えられるかもしれません。</li>
+                    <li>うまくうごかないときはもう一度ここからログインすると治るかもしれません。</li>
+                    <li>Google Adsenseの広告収入はツイ廃あらーとの管理費のみに使われます。</li>
+                </ul>
+                <div class="hidden-lg">
+                    <h2>Twitter公式アカウント</h2>
+                    <p>メンテナンス情報や更新情報をお知らせします。ぜひフォローをお願いします！</p>
+                    <p><a href="https://twitter.com/twihaialert" class="btn btn-default" target="_blank"><img
+                                    src="img/twitter-bird-16x16.png" alt=""/>&nbsp;@twihaialert</a></p>
+                </div>
+            </div>
+            <div class="col-lg-4 visible-lg">
+                <h2>Twitter公式アカウント</h2>
+                <p>メンテナンス情報や更新情報をお知らせします。ぜひフォローをお願いします！</p>
+                <a class="twitter-timeline" href="https://twitter.com/twihaialert" data-widget-id="427769360220815360">@twihaialert
+                    からのツイート</a>
+                <script>!function (d, s, id) {
+                        var js, fjs = d.getElementsByTagName(s)[0], p = /^http:/.test(d.location) ? 'http' : 'https';
+                        if (!d.getElementById(id)) {
+                            js = d.createElement(s);
+                            js.id = id;
+                            js.src = p + "://platform.twitter.com/widgets.js";
+                            fjs.parentNode.insertBefore(js, fjs);
+                        }
+                    }(document, "script", "twitter-wjs");</script>
+            </div>
+        </div>
+    </section>
+    <footer>Manage:<a href="https://twitter.com/MulticolorWorld">@MulticolorWorld</a><br class="visible-xs"/><span
+                class="hidden-xs"> / </span>Design:<a href="https://twitter.com/Lemon_will">@Lemon_will</a></footer>
+    <div class="hidden-xs" style="margin:0 auto;width:728px;">
+        <script async="async" src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- twihaialert_desktop -->
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:728px;height:90px"
+             data-ad-client="ca-pub-6566394533476797"
+             data-ad-slot="8814497060"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    <div class="visible-xs" style="margin:0 auto 0 auto;text-align:left;">
+        <script async="async" src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- twihaialert_mobile -->
+        <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px"
+             data-ad-client="ca-pub-6566394533476797" data-ad-slot="3813746669"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    </body>
+    </html>
 {{end}}

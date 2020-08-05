@@ -41,25 +41,25 @@ func (mu MainUseCase) Login(rt string, rs string, v string) (int, error) {
 		ta.ScreenName = name
 		ta, err = mu.tar.Update(ta)
 		if err != nil {
-			return 0, nil
+			return 0, err
 		}
 		us, err := mu.ur.FindById(ta.UserId)
 		if err != nil {
-			return 0, nil
+			return 0, err
 		}
 		u := &us[0]
 		now := time.Now()
 		u.LastLogin = &now
 		u, err = mu.ur.Update(u)
 		if err != nil {
-			return 0, nil
+			return 0, err
 		}
 		return u.ID, nil
 	} else { //新規登録
 		u := entity.NewUser()
 		u, err = mu.ur.Create(u)
 		if err != nil {
-			return 0, nil
+			return 0, err
 		}
 		ta := entity.NewTwitterAccount()
 		ta.TwitterId = id

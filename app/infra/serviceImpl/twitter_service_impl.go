@@ -8,19 +8,26 @@ import (
 	"os"
 )
 
-var config = oauth1.Config{
+var loginConfig = oauth1.Config{
 	ConsumerKey:    os.Getenv("twihaialert_app_consumer_key"),
 	ConsumerSecret: os.Getenv("twihaialert_app_consumer_secret"),
-	CallbackURL:    "http://localhost:1323/login/callback",
+	CallbackURL:    os.Getenv("twihaialert_app_host") + "/login/callback",
+	Endpoint:       oauth1Twitter.AuthorizeEndpoint,
+}
+
+var addAccountConfig = oauth1.Config{
+	ConsumerKey:    os.Getenv("twihaialert_app_consumer_key"),
+	ConsumerSecret: os.Getenv("twihaialert_app_consumer_secret"),
+	CallbackURL:    os.Getenv("twihaialert_app_host") + "/l/addAccount/callback",
 	Endpoint:       oauth1Twitter.AuthorizeEndpoint,
 }
 
 type TwitterServiceImpl struct {
 }
 
-func (t TwitterServiceImpl) GetAccountInfo(s string, s2 string) (int64, string, error) {
+func (t TwitterServiceImpl) GetLoginAccountInfo(s string, s2 string) (int64, string, error) {
 	token := oauth1.NewToken(s, s2)
-	httpClient := config.Client(oauth1.NoContext, token)
+	httpClient := loginConfig.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 	u, _, err := client.Accounts.VerifyCredentials(nil)
 	if err != nil {
@@ -29,16 +36,43 @@ func (t TwitterServiceImpl) GetAccountInfo(s string, s2 string) (int64, string, 
 	return u.ID, u.ScreenName, nil
 }
 
-func (t TwitterServiceImpl) GetAccessToken(rt string, rs string, v string) (string, string, error) {
-	return config.AccessToken(rt, rs, v)
+func (t TwitterServiceImpl) GetLoginAccessToken(rt string, rs string, v string) (string, string, error) {
+	return loginConfig.AccessToken(rt, rs, v)
 }
 
-func (t TwitterServiceImpl) GetRequestConfig() (string, string, string, error) {
-	rt, rs, err := config.RequestToken()
+func (t TwitterServiceImpl) GetLoginRequestConfig() (string, string, string, error) {
+	rt, rs, err := loginConfig.RequestToken()
 	if err != nil {
 		return "", "", "", err
 	}
-	url, err := config.AuthorizationURL(rt)
+	url, err := loginConfig.AuthorizationURL(rt)
+	if err != nil {
+		return "", "", "", err
+	}
+	return rt, rs, url.String(), nil
+}
+
+func (t TwitterServiceImpl) GetAddAccountInfo(s string, s2 string) (int64, string, error) {
+	token := oauth1.NewToken(s, s2)
+	httpClient := addAccountConfig.Client(oauth1.NoContext, token)
+	client := twitter.NewClient(httpClient)
+	u, _, err := client.Accounts.VerifyCredentials(nil)
+	if err != nil {
+		return 0, "", err
+	}
+	return u.ID, u.ScreenName, nil
+}
+
+func (t TwitterServiceImpl) GetAddAccessToken(rt string, rs string, v string) (string, string, error) {
+	return addAccountConfig.AccessToken(rt, rs, v)
+}
+
+func (t TwitterServiceImpl) GetAddRequestConfig() (string, string, string, error) {
+	rt, rs, err := addAccountConfig.RequestToken()
+	if err != nil {
+		return "", "", "", err
+	}
+	url, err := addAccountConfig.AuthorizationURL(rt)
 	if err != nil {
 		return "", "", "", err
 	}

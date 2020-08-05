@@ -4,6 +4,7 @@ import (
 	"app/domain/entity"
 	"app/domain/repository"
 	"app/domain/service"
+	"app/errors"
 	"strconv"
 	"time"
 )
@@ -19,21 +20,21 @@ func NewMainUseCase(ur repository.UserRepository, tar repository.TwitterAccountR
 }
 
 func (mu MainUseCase) PreLogin() (string, string, string, error) {
-	return mu.ts.GetRequestConfig()
+	return mu.ts.GetLoginRequestConfig()
 }
 
 func (mu MainUseCase) Login(rt string, rs string, v string) (int, error) {
-	at, as, err := mu.ts.GetAccessToken(rt, rs, v)
+	at, as, err := mu.ts.GetLoginAccessToken(rt, rs, v)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
-	id, name, err := mu.ts.GetAccountInfo(at, as)
+	id, name, err := mu.ts.GetLoginAccountInfo(at, as)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	tas, err := mu.tar.FindByTwitterId(id)
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 	if len(tas) != 0 { //ログイン
 		ta := &tas[0]
@@ -68,7 +69,7 @@ func (mu MainUseCase) Login(rt string, rs string, v string) (int, error) {
 		ta.AccessTokenSecret = as
 		ta, err = mu.tar.Create(ta)
 		if err != nil {
-			return 0, nil
+			return 0, err
 		}
 		return u.ID, nil
 	}
@@ -101,6 +102,40 @@ func (mu MainUseCase) UpdateConfig(d string, id int) error {
 	_, err = mu.ur.Update(u)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (mu MainUseCase) PreAddAccount() (string, string, string, error) {
+	return mu.ts.GetAddRequestConfig()
+}
+
+func (mu MainUseCase) AddAccount(rt string, rs string, v string, userId int) error {
+	at, as, err := mu.ts.GetAddAccessToken(rt, rs, v)
+	if err != nil {
+		return err
+	}
+	id, name, err := mu.ts.GetAddAccountInfo(at, as)
+	if err != nil {
+		return err
+	}
+	tas, err := mu.tar.FindByTwitterId(id)
+	if err != nil {
+		return err
+	}
+	if len(tas) != 0 {
+		return &errors.AccountAlreadyExistError{}
+	} else {
+		ta := entity.NewTwitterAccount()
+		ta.TwitterId = id
+		ta.UserId = userId
+		ta.ScreenName = name
+		ta.AccessToken = at
+		ta.AccessTokenSecret = as
+		ta, err = mu.tar.Create(ta)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

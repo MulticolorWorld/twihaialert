@@ -50,9 +50,12 @@ func Web() {
 	l.GET("/configInput", mh.ConfigInput)
 	l.POST("/config", mh.Config)
 	l.GET("/configFinish", mh.ConfigFinish)
+	l.GET("/addAccount", mh.AddAccount)
+	l.GET("/addAccount/callback", mh.AddAccountCallback)
 
 	er := e.Group("/error")
 	er.GET("/wrongToken", eh.WrongToken)
+	er.GET("/accountAlreadyExist", eh.AccountAlreadyExist)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

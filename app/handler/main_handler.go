@@ -2,7 +2,9 @@ package handler
 
 import (
 	"app/domain/entity"
+	errors2 "app/errors"
 	"app/useCase"
+	"errors"
 	"github.com/dghubble/oauth1"
 	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/session"
@@ -107,4 +109,33 @@ func (mh MainHandler) Config(c echo.Context) error {
 
 func (mh MainHandler) ConfigFinish(c echo.Context) error {
 	return c.Render(http.StatusOK, "configFinish", nil)
+}
+
+func (mh MainHandler) AddAccount(c echo.Context) error {
+	rt, rs, url, _ := mh.mu.PreAddAccount()
+
+	sess, _ := session.Get("session", c)
+	sess.Values["requestToken"] = rt
+	sess.Values["requestSecret"] = rs
+	sess.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusFound, url)
+}
+
+func (mh MainHandler) AddAccountCallback(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	rs := sess.Values["requestSecret"].(string)
+	rt, v, err := oauth1.ParseAuthorizationCallback(c.Request())
+	if err != nil {
+		return err
+	}
+	userId := sess.Values["userId"].(int)
+	err = mh.mu.AddAccount(rt, rs, v, userId)
+	if err != nil {
+		if errors.Is(err, &errors2.AccountAlreadyExistError{}) {
+			return c.Redirect(http.StatusFound, "/error/accountAlreadyExist")
+		}
+		return err
+	}
+	return c.Redirect(http.StatusFound, "/l/myPage")
 }

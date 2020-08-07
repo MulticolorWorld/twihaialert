@@ -35,7 +35,9 @@ func Web() {
 	eh := handler.NewErrorHandler()
 
 	e := echo.New()
-	e.Use(session.Middleware(sessions.NewCookieStore(securecookie.GenerateRandomKey(32))))
+	store := sessions.NewCookieStore(securecookie.GenerateRandomKey(32))
+	store.MaxAge(86400 * 7)
+	e.Use(session.Middleware(store))
 	e.Renderer = t
 	e.Static("/", "public/assets")
 	e.Logger.SetLevel(log.DEBUG)
@@ -43,6 +45,7 @@ func Web() {
 	e.GET("/", mh.Index)
 	e.GET("/login", mh.Login)
 	e.GET("/login/callback", mh.LoginCallback)
+	e.GET("/removeFinish", mh.RemoveFinish)
 
 	l := e.Group("/l")
 	l.Use(loginCheckMiddleware)
@@ -52,6 +55,9 @@ func Web() {
 	l.GET("/configFinish", mh.ConfigFinish)
 	l.GET("/addAccount", mh.AddAccount)
 	l.GET("/addAccount/callback", mh.AddAccountCallback)
+	l.GET("/removeConfirm", mh.RemoveConfirm)
+	l.POST("/remove", mh.Remove)
+	l.GET("/logout", mh.Logout)
 
 	er := e.Group("/error")
 	er.GET("/wrongToken", eh.WrongToken)

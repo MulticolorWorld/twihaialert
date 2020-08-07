@@ -1,10 +1,7 @@
 package service
 
 type TwitterService interface {
-	GetLoginRequestConfig() (string, string, string, error)
-	GetLoginAccessToken(string, string, string) (string, string, error)
-	GetLoginAccountInfo(string, string) (int64, string, error)
-	GetAddRequestConfig() (string, string, string, error)
-	GetAddAccessToken(string, string, string) (string, string, error)
-	GetAddAccountInfo(string, string) (int64, string, error)
+	GetRequestConfig(mode string) (rToken string, rSecret string, url string, err error)
+	GetAccessToken(mode string, rToken string, rSecret string, v string) (aToken string, aSecret string, err error)
+	GetAccountInfo(mode string, aToken string, aSecret string) (id int64, name string, err error)
 }

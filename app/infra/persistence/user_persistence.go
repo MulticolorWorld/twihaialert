@@ -12,6 +12,14 @@ type UserPersistence struct {
 	db *gorm.DB
 }
 
+func (up UserPersistence) Delete(user *entity.User) error {
+	err := up.db.Delete(user).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (up UserPersistence) Create(u *entity.User) (*entity.User, error) {
 	err := up.db.Create(u).Error
 	if err != nil {

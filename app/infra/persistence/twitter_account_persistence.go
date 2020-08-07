@@ -10,6 +10,14 @@ type TwitterAccountPersistence struct {
 	db *gorm.DB
 }
 
+func (t TwitterAccountPersistence) Delete(account *entity.TwitterAccount) error {
+	err := t.db.Delete(account).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (t TwitterAccountPersistence) Create(account *entity.TwitterAccount) (*entity.TwitterAccount, error) {
 	err := t.db.Create(account).Error
 	if err != nil {

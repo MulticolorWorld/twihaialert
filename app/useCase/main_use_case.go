@@ -10,132 +10,155 @@ import (
 )
 
 type MainUseCase struct {
-	ur  repository.UserRepository
-	tar repository.TwitterAccountRepository
-	ts  service.TwitterService
+	userRepository    repository.UserRepository
+	accountRepository repository.TwitterAccountRepository
+	twitterService    service.TwitterService
 }
 
 func NewMainUseCase(ur repository.UserRepository, tar repository.TwitterAccountRepository, ts service.TwitterService) *MainUseCase {
-	return &MainUseCase{ur: ur, tar: tar, ts: ts}
+	return &MainUseCase{userRepository: ur, accountRepository: tar, twitterService: ts}
 }
 
-func (mu MainUseCase) PreLogin() (string, string, string, error) {
-	return mu.ts.GetLoginRequestConfig()
+func (u MainUseCase) PreLogin() (string, string, string, error) {
+	return u.twitterService.GetRequestConfig("login")
 }
 
-func (mu MainUseCase) Login(rt string, rs string, v string) (int, error) {
-	at, as, err := mu.ts.GetLoginAccessToken(rt, rs, v)
+func (u MainUseCase) Login(rToken string, rSecret string, v string) (id int, err error) {
+	aToken, aSecret, err := u.twitterService.GetAccessToken("login", rToken, rSecret, v)
 	if err != nil {
 		return 0, err
 	}
-	id, name, err := mu.ts.GetLoginAccountInfo(at, as)
+	twitterId, name, err := u.twitterService.GetAccountInfo("login", aToken, aSecret)
 	if err != nil {
 		return 0, err
 	}
-	tas, err := mu.tar.FindByTwitterId(id)
+	tas, err := u.accountRepository.FindByTwitterId(twitterId)
 	if err != nil {
 		return 0, err
 	}
 	if len(tas) != 0 { //ログイン
 		ta := &tas[0]
 		ta.ScreenName = name
-		ta, err = mu.tar.Update(ta)
+		ta, err = u.accountRepository.Update(ta)
 		if err != nil {
 			return 0, err
 		}
-		us, err := mu.ur.FindById(ta.UserId)
+		users, err := u.userRepository.FindById(ta.UserId)
 		if err != nil {
 			return 0, err
 		}
-		u := &us[0]
+		user := &users[0]
 		now := time.Now()
-		u.LastLogin = &now
-		u, err = mu.ur.Update(u)
+		user.LastLogin = &now
+		user, err = u.userRepository.Update(user)
 		if err != nil {
 			return 0, err
 		}
-		return u.ID, nil
+		return user.ID, nil
 	} else { //新規登録
-		u := entity.NewUser()
-		u, err = mu.ur.Create(u)
+		user := entity.NewUser()
+		user, err = u.userRepository.Create(user)
 		if err != nil {
 			return 0, err
 		}
 		ta := entity.NewTwitterAccount()
-		ta.TwitterId = id
-		ta.UserId = u.ID
+		ta.TwitterId = twitterId
+		ta.UserId = user.ID
 		ta.ScreenName = name
-		ta.AccessToken = at
-		ta.AccessTokenSecret = as
-		ta, err = mu.tar.Create(ta)
+		ta.AccessToken = aToken
+		ta.AccessTokenSecret = aSecret
+		ta, err = u.accountRepository.Create(ta)
 		if err != nil {
 			return 0, err
 		}
-		return u.ID, nil
+		return user.ID, nil
 	}
 }
 
-func (mu MainUseCase) FindUserInfo(userId int) (*entity.User, []entity.TwitterAccount, error) {
-	us, err := mu.ur.FindById(userId)
+func (u MainUseCase) FindUserInfo(userId int) (*entity.User, []entity.TwitterAccount, error) {
+	users, err := u.userRepository.FindById(userId)
 	if err != nil {
 		return nil, nil, err
 	}
-	u := &us[0]
-	tas, err := mu.tar.FindByUserId(u.ID)
+	user := &users[0]
+	accounts, err := u.accountRepository.FindByUserId(user.ID)
 	if err != nil {
 		return nil, nil, err
 	}
-	return u, tas, nil
+	return user, accounts, nil
 }
 
-func (mu MainUseCase) UpdateConfig(d string, id int) error {
-	us, err := mu.ur.FindById(id)
+func (u MainUseCase) UpdateConfig(s string, id int) error {
+	users, err := u.userRepository.FindById(id)
 	if err != nil {
 		return err
 	}
-	u := &us[0]
-	dn, err := strconv.Atoi(d)
+	user := &users[0]
+	notify, err := strconv.Atoi(s)
 	if err != nil {
 		return err
 	}
-	u.DMNotification = dn
-	_, err = mu.ur.Update(u)
+	user.DMNotification = notify
+	_, err = u.userRepository.Update(user)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (mu MainUseCase) PreAddAccount() (string, string, string, error) {
-	return mu.ts.GetAddRequestConfig()
+func (u MainUseCase) PreAddAccount() (string, string, string, error) {
+	return u.twitterService.GetRequestConfig("addAccount")
 }
 
-func (mu MainUseCase) AddAccount(rt string, rs string, v string, userId int) error {
-	at, as, err := mu.ts.GetAddAccessToken(rt, rs, v)
+func (u MainUseCase) AddAccount(rToken string, rSecret string, v string, userId int) error {
+	aToken, aSecret, err := u.twitterService.GetAccessToken("addAccount", rToken, rSecret, v)
 	if err != nil {
 		return err
 	}
-	id, name, err := mu.ts.GetAddAccountInfo(at, as)
+	id, name, err := u.twitterService.GetAccountInfo("addAccount", aToken, aSecret)
 	if err != nil {
 		return err
 	}
-	tas, err := mu.tar.FindByTwitterId(id)
+	accounts, err := u.accountRepository.FindByTwitterId(id)
 	if err != nil {
 		return err
 	}
-	if len(tas) != 0 {
+	if len(accounts) != 0 {
 		return &errors.AccountAlreadyExistError{}
 	} else {
-		ta := entity.NewTwitterAccount()
-		ta.TwitterId = id
-		ta.UserId = userId
-		ta.ScreenName = name
-		ta.AccessToken = at
-		ta.AccessTokenSecret = as
-		ta, err = mu.tar.Create(ta)
+		account := entity.NewTwitterAccount()
+		account.TwitterId = id
+		account.UserId = userId
+		account.ScreenName = name
+		account.AccessToken = aToken
+		account.AccessTokenSecret = aSecret
+		account, err = u.accountRepository.Create(account)
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (u MainUseCase) Remove(id int) error {
+	users, err := u.userRepository.FindById(id)
+	if err != nil {
+		return err
+	}
+	user := users[0]
+	accounts, err := u.accountRepository.FindByUserId(id)
+	if err != nil {
+		return err
+	}
+	for _, a := range accounts {
+		err = u.accountRepository.Delete(&a)
+		if err != nil {
+			return err
+		}
+	}
+	err = u.userRepository.Delete(&user)
+	if err != nil {
+		return err
 	}
 	return nil
 }

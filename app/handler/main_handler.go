@@ -13,7 +13,7 @@ import (
 )
 
 type MainHandler struct {
-	mu useCase.MainUseCase
+	useCase useCase.MainUseCase
 }
 
 type Data struct {
@@ -23,15 +23,15 @@ type Data struct {
 }
 
 func NewMainHandler(mu useCase.MainUseCase) *MainHandler {
-	return &MainHandler{mu: mu}
+	return &MainHandler{useCase: mu}
 }
 
-func (mh MainHandler) Index(c echo.Context) error {
+func (h MainHandler) Index(c echo.Context) error {
 	return c.Render(http.StatusOK, "index", nil)
 }
 
-func (mh MainHandler) Login(c echo.Context) error {
-	rt, rs, url, _ := mh.mu.PreLogin()
+func (h MainHandler) Login(c echo.Context) error {
+	rt, rs, url, _ := h.useCase.PreLogin()
 
 	sess, _ := session.Get("session", c)
 	sess.Values["requestToken"] = rt
@@ -41,14 +41,14 @@ func (mh MainHandler) Login(c echo.Context) error {
 	return c.Redirect(http.StatusFound, url)
 }
 
-func (mh MainHandler) LoginCallback(c echo.Context) error {
+func (h MainHandler) LoginCallback(c echo.Context) error {
 	sess, _ := session.Get("session", c)
 	rs := sess.Values["requestSecret"].(string)
 	rt, v, err := oauth1.ParseAuthorizationCallback(c.Request())
 	if err != nil {
 		return err
 	}
-	id, err := mh.mu.Login(rt, rs, v)
+	id, err := h.useCase.Login(rt, rs, v)
 	if err != nil {
 		return err
 	}
@@ -58,10 +58,10 @@ func (mh MainHandler) LoginCallback(c echo.Context) error {
 	return c.Redirect(http.StatusFound, "/l/myPage")
 }
 
-func (mh MainHandler) MyPage(c echo.Context) error {
+func (h MainHandler) MyPage(c echo.Context) error {
 	sess, _ := session.Get("session", c)
 	userId := sess.Values["userId"].(int)
-	u, tas, err := mh.mu.FindUserInfo(userId)
+	u, tas, err := h.useCase.FindUserInfo(userId)
 	if err != nil {
 		return err
 	}
@@ -73,10 +73,10 @@ func (mh MainHandler) MyPage(c echo.Context) error {
 	return c.Render(http.StatusOK, "myPage", d)
 }
 
-func (mh MainHandler) ConfigInput(c echo.Context) error {
+func (h MainHandler) ConfigInput(c echo.Context) error {
 	sess, _ := session.Get("session", c)
 	userId := sess.Values["userId"].(int)
-	u, tas, err := mh.mu.FindUserInfo(userId)
+	u, tas, err := h.useCase.FindUserInfo(userId)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (mh MainHandler) ConfigInput(c echo.Context) error {
 	return c.Render(http.StatusOK, "configInput", d)
 }
 
-func (mh MainHandler) Config(c echo.Context) error {
+func (h MainHandler) Config(c echo.Context) error {
 	sess, _ := session.Get("session", c)
 	st := sess.Values["csrfToken"].(string)
 	ft := c.FormValue("token")
@@ -100,19 +100,19 @@ func (mh MainHandler) Config(c echo.Context) error {
 	}
 	dn := c.FormValue("dmNotification")
 	userId := sess.Values["userId"].(int)
-	err := mh.mu.UpdateConfig(dn, userId)
+	err := h.useCase.UpdateConfig(dn, userId)
 	if err != nil {
 		return err
 	}
 	return c.Redirect(http.StatusFound, "/l/configFinish")
 }
 
-func (mh MainHandler) ConfigFinish(c echo.Context) error {
+func (h MainHandler) ConfigFinish(c echo.Context) error {
 	return c.Render(http.StatusOK, "configFinish", nil)
 }
 
-func (mh MainHandler) AddAccount(c echo.Context) error {
-	rt, rs, url, _ := mh.mu.PreAddAccount()
+func (h MainHandler) AddAccount(c echo.Context) error {
+	rt, rs, url, _ := h.useCase.PreAddAccount()
 
 	sess, _ := session.Get("session", c)
 	sess.Values["requestToken"] = rt
@@ -122,7 +122,7 @@ func (mh MainHandler) AddAccount(c echo.Context) error {
 	return c.Redirect(http.StatusFound, url)
 }
 
-func (mh MainHandler) AddAccountCallback(c echo.Context) error {
+func (h MainHandler) AddAccountCallback(c echo.Context) error {
 	sess, _ := session.Get("session", c)
 	rs := sess.Values["requestSecret"].(string)
 	rt, v, err := oauth1.ParseAuthorizationCallback(c.Request())
@@ -130,7 +130,7 @@ func (mh MainHandler) AddAccountCallback(c echo.Context) error {
 		return err
 	}
 	userId := sess.Values["userId"].(int)
-	err = mh.mu.AddAccount(rt, rs, v, userId)
+	err = h.useCase.AddAccount(rt, rs, v, userId)
 	if err != nil {
 		if errors.Is(err, &errors2.AccountAlreadyExistError{}) {
 			return c.Redirect(http.StatusFound, "/error/accountAlreadyExist")
@@ -138,4 +138,50 @@ func (mh MainHandler) AddAccountCallback(c echo.Context) error {
 		return err
 	}
 	return c.Redirect(http.StatusFound, "/l/myPage")
+}
+
+func (h MainHandler) RemoveConfirm(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	userId := sess.Values["userId"].(int)
+	u, tas, err := h.useCase.FindUserInfo(userId)
+	if err != nil {
+		return err
+	}
+	t := uuid.New().String()
+	d := Data{
+		User:     u,
+		Accounts: tas,
+		Token:    t,
+	}
+	sess.Values["csrfToken"] = t
+	sess.Save(c.Request(), c.Response())
+	return c.Render(http.StatusOK, "removeConfirm", d)
+}
+
+func (h MainHandler) Remove(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	st := sess.Values["csrfToken"].(string)
+	ft := c.FormValue("token")
+	if st != ft {
+		return c.Redirect(http.StatusFound, "/error/wrongToken")
+	}
+	userId := sess.Values["userId"].(int)
+	err := h.useCase.Remove(userId)
+	if err != nil {
+		return err
+	}
+	sess.Options.MaxAge = -1
+	sess.Save(c.Request(), c.Response())
+	return c.Redirect(http.StatusFound, "/removeFinish")
+}
+
+func (h MainHandler) RemoveFinish(c echo.Context) error {
+	return c.Render(http.StatusOK, "removeFinish", nil)
+}
+
+func (h MainHandler) Logout(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	sess.Options.MaxAge = -1
+	sess.Save(c.Request(), c.Response())
+	return c.Redirect(http.StatusFound, "/")
 }

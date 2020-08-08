@@ -8,6 +8,7 @@ services:
       - "127.0.0.1:3306:3306"
     volumes:
       - db-data:/var/lib/mysql
+      - ./db/twihaialert.cnf:/etc/mysql/conf.d/twihaialert.cnf
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
       MYSQL_DATABASE: ${twihaialert_db_name}
@@ -16,6 +17,7 @@ services:
       TZ: "Asia/Tokyo"
   flyway:
     image: flyway/flyway
+    restart: on-failure
     command: -url=jdbc:mysql://db:3306 -schemas=${twihaialert_db_name} -user=${twihaialert_db_user} -password=${twihaialert_db_password} -connectRetries=60 migrate
     volumes:
       - ./flyway/sql:/flyway/sql

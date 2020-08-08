@@ -55,10 +55,12 @@ func InitDBConnection() (*gorm.DB, error) {
 	pass := os.Getenv("twihaialert_db_password")
 	name := os.Getenv("twihaialert_db_name")
 
-	db, err := gorm.Open("mysql", user+":"+pass+"@/"+name+"?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", user+":"+pass+"@/"+name+"?charset=utf8mb4&parseTime=True&loc=Local")
 	if err != nil {
 		return nil, err
 	}
+	db.DB().SetMaxIdleConns(5)
+	db.DB().SetMaxOpenConns(5)
 
 	return db, nil
 }

@@ -1,0 +1,4 @@
+[mysqld]
+max_connections=110
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci

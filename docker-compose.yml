@@ -1,6 +1,31 @@
 version: "3"
 
 services:
+  app-web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile-web
+    image: twihaialert-app-web:latest
+    restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+  proxy:
+    image: "caddy:2.1.1-alpine"
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"      
+    networks: 
+      - toot_counter
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile
+      - proxy-data:/data
+    environment:
+      TZ: "Asia/Tokyo"
+    depends_on:
+      - app-web
   db:
     image: mysql:5.7.30
     restart: always
@@ -21,5 +46,7 @@ services:
     command: -url=jdbc:mysql://db:3306 -schemas=${twihaialert_db_name} -user=${twihaialert_db_user} -password=${twihaialert_db_password} -connectRetries=60 migrate
     volumes:
       - ./flyway/sql:/flyway/sql
+
 volumes:
   db-data:
+  proxy-data:

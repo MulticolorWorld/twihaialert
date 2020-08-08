@@ -13,7 +13,7 @@ jobs:
           name: build
           command: |
             cd app
-            go build
+            go build -a -tags netgo -installsuffix netgo
       - persist_to_workspace:
           root: app
           paths:

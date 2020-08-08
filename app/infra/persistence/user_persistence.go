@@ -51,11 +51,12 @@ func NewUserPersistence(db *gorm.DB) repository.UserRepository {
 }
 
 func InitDBConnection() (*gorm.DB, error) {
+	host := os.Getenv("twihaialert_db_host")
 	user := os.Getenv("twihaialert_db_user")
 	pass := os.Getenv("twihaialert_db_password")
 	name := os.Getenv("twihaialert_db_name")
 
-	db, err := gorm.Open("mysql", user+":"+pass+"@/"+name+"?charset=utf8mb4&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", user+":"+pass+"@("+host+")/"+name+"?charset=utf8mb4&parseTime=True&loc=Local")
 	if err != nil {
 		return nil, err
 	}

@@ -20,7 +20,6 @@ func Web() {
 	if err != nil {
 		panic("DB接続エラー")
 	}
-	db.LogMode(true)
 	defer db.Close()
 
 	t := &Template{

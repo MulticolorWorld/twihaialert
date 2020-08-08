@@ -1,0 +1,10 @@
+FROM alpine:latest
+
+RUN apk add tzdata
+ENV TZ=Asia/Tokyo
+
+COPY app /opt/app
+COPY public /opt/public
+WORKDIR /opt
+
+CMD ["./app", "web"]

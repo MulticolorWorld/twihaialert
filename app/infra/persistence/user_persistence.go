@@ -12,6 +12,16 @@ type UserPersistence struct {
 	db *gorm.DB
 }
 
+func (up UserPersistence) FindAll() ([]entity.User, error) {
+	var users []entity.User
+	err := up.db.Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (up UserPersistence) Delete(user *entity.User) error {
 	err := up.db.Delete(user).Error
 	if err != nil {

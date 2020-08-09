@@ -11,6 +11,6 @@ func main() {
 		Web()
 	}
 	if mode == "task" {
-
+		Task()
 	}
 }

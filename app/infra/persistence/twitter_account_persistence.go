@@ -10,6 +10,15 @@ type TwitterAccountPersistence struct {
 	db *gorm.DB
 }
 
+func (t TwitterAccountPersistence) FindAll() ([]entity.TwitterAccount, error) {
+	var accounts []entity.TwitterAccount
+	err := t.db.Find(&accounts).Error
+	if err != nil {
+		return nil, err
+	}
+	return accounts, nil
+}
+
 func (t TwitterAccountPersistence) Delete(account *entity.TwitterAccount) error {
 	err := t.db.Delete(account).Error
 	if err != nil {

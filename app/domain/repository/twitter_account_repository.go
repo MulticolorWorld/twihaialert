@@ -8,4 +8,5 @@ type TwitterAccountRepository interface {
 	Delete(account *entity.TwitterAccount) error
 	FindByTwitterId(twitterId int64) ([]entity.TwitterAccount, error)
 	FindByUserId(userId int) ([]entity.TwitterAccount, error)
+	FindAll() ([]entity.TwitterAccount, error)
 }

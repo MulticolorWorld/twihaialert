@@ -17,8 +17,6 @@ services:
     ports:
       - "80:80"
       - "443:443"      
-    networks: 
-      - toot_counter
     volumes:
       - ./proxy/Caddyfile:/etc/caddy/Caddyfile
       - proxy-data:/data

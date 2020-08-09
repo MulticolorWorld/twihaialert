@@ -1,33 +1,28 @@
 version: 2.1
 
 jobs:
-  build:
+  deploy:
     docker:
-      - image: circleci/golang:1.14-buster
+      - image: circleci/buildpack-deps:buster
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - go-cache-v1
+      - add_ssh_keys:
+          fingerprints:
+            - "76:4d:4b:8c:c5:61:ad:c5:d3:9e:b5:e5:67:2c:e6:97"
       - run:
-          name: build
+          name: prepare ssh
+          command: ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+      - run:
+          name: git push
           command: |
-            cd app
-            go build -a -tags netgo -installsuffix netgo
-      - persist_to_workspace:
-          root: app
-          paths:
-            - app
-      - save_cache:
-          paths:
-            - "/go/pkg"
-          key: go-cache-v1
+            git remote add prod $DEPLOY_USER@$DEPLOY_HOST:~/twihaialert/.git
+            git push prod main
 
 workflows:
   version: 2
   workflow:
     jobs:
-      - build:
+      - deploy:
           filters:
             branches:
               only: main

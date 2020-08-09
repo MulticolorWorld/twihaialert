@@ -40,7 +40,6 @@ services:
       TZ: "Asia/Tokyo"
   flyway:
     image: flyway/flyway
-    restart: on-failure
     command: -url=jdbc:mysql://db:3306 -schemas=${twihaialert_db_name} -user=${twihaialert_db_user} -password=${twihaialert_db_password} -connectRetries=60 migrate
     volumes:
       - ./flyway/sql:/flyway/sql

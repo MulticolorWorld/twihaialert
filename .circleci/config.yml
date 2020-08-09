@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  slack: circleci/slack@3.4.2
 
 jobs:
   deploy:
@@ -17,6 +19,21 @@ jobs:
           command: |
             git remote add prod $DEPLOY_USER@$DEPLOY_HOST:~/twihaialert/.git
             git push prod main
+      - run:
+          name: docker build
+          command: ssh -tt $DEPLOY_USER@$DEPLOY_HOST "cd ~/twihaialert; sudo docker-compose build"
+      - run:
+          name: up db
+          command: ssh -tt $DEPLOY_USER@$DEPLOY_HOST "cd ~/twihaialert; sudo docker-compose up -d db"
+      - run:
+          name: migrate
+          command: ssh -tt $DEPLOY_USER@$DEPLOY_HOST "cd ~/twihaialert; sudo docker-compose up flyway"
+      - run:
+          name: up app-web and proxy
+          command: |
+            ssh -tt $DEPLOY_USER@$DEPLOY_HOST "cd ~/twihaialert; sudo docker-compose up -d app-web"
+            ssh -tt $DEPLOY_USER@$DEPLOY_HOST "cd ~/twihaialert; sudo docker-compose up -d proxy"
+      - slack/status:
 
 workflows:
   version: 2

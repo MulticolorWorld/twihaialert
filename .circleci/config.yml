@@ -33,6 +33,13 @@ jobs:
           command: |
             ssh -tt $DEPLOY_USER@$DEPLOY_HOST "cd ~/twihaialert; sudo docker-compose up -d app-web"
             ssh -tt $DEPLOY_USER@$DEPLOY_HOST "cd ~/twihaialert; sudo docker-compose up -d proxy"
+      - run:
+          name: enable task timer
+          command: |
+            ssh -tt $DEPLOY_USER@$DEPLOY_HOST "sudo cp ~/toot-counter/.circleci/twihaialert-app-task.* /etc/systemd/system/"
+            ssh -tt $DEPLOY_USER@$DEPLOY_HOST "sudo systemctl daemon-reload"
+            ssh -tt $DEPLOY_USER@$DEPLOY_HOST "sudo systemctl enable twihaialert-app-task.timer"
+            ssh -tt $DEPLOY_USER@$DEPLOY_HOST "sudo systemctl start twihaialert-app-task.timer"
       - slack/status
 
 

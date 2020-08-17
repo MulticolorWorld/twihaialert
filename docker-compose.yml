@@ -11,6 +11,15 @@ services:
       - ./.env
     depends_on:
       - db
+  app-task:
+    build:
+      context: ./app
+      dockerfile: Dockerfile-task
+    image: twihaialert-app-task:latest
+    env_file:
+      - ./.env
+    depends_on:
+      - db
   proxy:
     image: "caddy:2.1.1-alpine"
     restart: always

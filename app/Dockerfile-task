@@ -1,0 +1,14 @@
+FROM golang:1.14-alpine as build
+ADD . /app
+WORKDIR /app
+RUN go build -a -tags netgo -installsuffix netgo
+
+FROM alpine:latest
+RUN apk add tzdata
+ENV TZ=Asia/Tokyo
+
+COPY --from=build /app/app /opt/app
+COPY public /opt/public
+WORKDIR /opt
+
+CMD ["./app", "task"]

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"app/module"
 	"flag"
 )
 
@@ -8,9 +9,9 @@ func main() {
 	flag.Parse()
 	mode := flag.Arg(0)
 	if mode == "web" {
-		Web()
+		module.Web()
 	}
 	if mode == "task" {
-		Task()
+		module.Task()
 	}
 }

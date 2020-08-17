@@ -1,0 +1,7 @@
+[Unit]
+Description=twihaialert task service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/admin/twihaialert/
+ExecStart=/usr/local/bin/docker-compose up -d app-task

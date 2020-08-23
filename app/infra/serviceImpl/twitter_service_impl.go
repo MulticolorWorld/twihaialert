@@ -7,6 +7,7 @@ import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	oauth1Twitter "github.com/dghubble/oauth1/twitter"
+	"github.com/labstack/gommon/log"
 	"os"
 	"strconv"
 	"time"
@@ -36,37 +37,52 @@ type TwitterServiceImpl struct {
 }
 
 func (t TwitterServiceImpl) PostStatus(message string, dm int, accounts []entity.TwitterAccount) (err error) {
-	config := baseConfig
-	for _, a := range accounts {
-		token := oauth1.NewToken(a.AccessToken, a.AccessTokenSecret)
-		httpClient := config.Client(oauth1.NoContext, token)
-		client := twitter.NewClient(httpClient)
-		if dm == 0 {
-			_, _, err := client.Statuses.Update(message, nil)
-			if err != nil {
-				continue
-			}
-		} else {
-			_, _, err := client.DirectMessages.EventsNew(&twitter.DirectMessageEventsNewParams{
-				Event: &twitter.DirectMessageEvent{
-					Type: "message_create",
-					Message: &twitter.DirectMessageEventMessage{
-						Target: &twitter.DirectMessageTarget{
-							RecipientID: strconv.FormatInt(a.TwitterId, 10),
-						},
-						Data: &twitter.DirectMessageData{
-							Text: message,
-						},
-					},
-				},
-			})
-			if err != nil {
-				continue
-			}
+	profile := os.Getenv("twihaialert_app_profile")
+	switch profile {
+	case "develop":
+		{
+			log.Info("Now profile is develop. No status post.")
+			return nil
 		}
-		return nil
+	case "production":
+		{
+			config := baseConfig
+			for _, a := range accounts {
+				token := oauth1.NewToken(a.AccessToken, a.AccessTokenSecret)
+				httpClient := config.Client(oauth1.NoContext, token)
+				client := twitter.NewClient(httpClient)
+				if dm == 0 {
+					_, _, err := client.Statuses.Update(message, nil)
+					if err != nil {
+						continue
+					}
+				} else {
+					_, _, err := client.DirectMessages.EventsNew(&twitter.DirectMessageEventsNewParams{
+						Event: &twitter.DirectMessageEvent{
+							Type: "message_create",
+							Message: &twitter.DirectMessageEventMessage{
+								Target: &twitter.DirectMessageTarget{
+									RecipientID: strconv.FormatInt(a.TwitterId, 10),
+								},
+								Data: &twitter.DirectMessageData{
+									Text: message,
+								},
+							},
+						},
+					})
+					if err != nil {
+						continue
+					}
+				}
+				return nil
+			}
+			return errors.New("User:" + strconv.Itoa(accounts[0].UserId) + " not notify.")
+		}
+	default:
+		{
+			panic("Profile string not match.")
+		}
 	}
-	return errors.New("User:" + strconv.Itoa(accounts[0].UserId) + " not notify.")
 }
 
 func (t TwitterServiceImpl) GetCountFromLastId(lastId int64, twitterId int64, aToken string, aSecret string) (count int, rtCount int, newLastId int64, err error) {

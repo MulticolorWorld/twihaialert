@@ -20,6 +20,8 @@ func Web() {
 	if err != nil {
 		panic("DB接続エラー")
 	}
+	db.DB().SetMaxIdleConns(5)
+	db.DB().SetMaxOpenConns(5)
 	defer db.Close()
 
 	t := &Template{

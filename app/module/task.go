@@ -21,7 +21,6 @@ func Task() {
 	}
 	db.DB().SetMaxIdleConns(110)
 	db.DB().SetMaxOpenConns(110)
-	db.LogMode(true)
 	defer db.Close()
 
 	http.DefaultTransport.(*http.Transport).MaxIdleConns = 0

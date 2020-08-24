@@ -70,8 +70,6 @@ func InitDBConnection() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.DB().SetMaxIdleConns(5)
-	db.DB().SetMaxOpenConns(5)
 
 	return db, nil
 }
